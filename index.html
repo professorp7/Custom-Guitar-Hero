@@ -3,15 +3,16 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Beat Aligner PRO — Auto-Charts (Playlist)</title>
+<title>Beat Aligner PRO — Auto-Charts for Any Song</title>
 <style>
   :root{
     --bg:#060b18; --panel:#0e1730; --ink:#e6eef6; --muted:#9fb0c3; --accent:#7dd3fc; --accent2:#a78bfa;
     --line:#223055; --good:#22c55e; --great:#4ade80; --perfect:#a7f3d0; --bad:#ef4444;
   }
   *{box-sizing:border-box}
-  body{margin:0; background:radial-gradient(1200px 600px at 50% -200px,#142448 0%,#060b18 60%,#050a14 100%); color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,Arial,sans-serif;}
-  .wrap{display:grid; grid-template-columns:420px 1fr; gap:16px; padding:16px; min-height:100vh}
+  body{margin:0; background:radial-gradient(1200px 600px at 50% -200px,#142448 0%,#060b18 60%,#050a14 100%);
+       color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,Arial,sans-serif;}
+  .wrap{display:grid; grid-template-columns:380px 1fr; gap:16px; padding:16px; min-height:100vh}
   .card{background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
   .panel{padding:14px}
   h1{font-size:18px; margin:0 0 10px; color:#bfe9ff}
@@ -43,7 +44,7 @@
   .hint{font-size:12px; color:#90a7c1}
   .test{font-size:11px; color:#a9c1ff}
 
-  /* Drag & Drop */
+  /* Drag & Drop additions */
   .dropzone{
     margin-top:8px; padding:12px; border:1px dashed #2a3b70; border-radius:12px;
     background:rgba(125,211,252,0.05); display:flex; align-items:center; justify-content:space-between; gap:8px;
@@ -53,72 +54,23 @@
   .dropzone .dz-hint{font-size:11px; color:#90a7c1}
   .dropzone.highlight{border-color:#7dd3fc; box-shadow:0 0 0 3px #7dd3fc22 inset, 0 0 0 1px #7dd3fcaa}
   .dropping .card, .dropping canvas{outline:2px dashed #7dd3fcaa; outline-offset:6px}
-
-  /* Playlist UI */
-  .plist{margin-top:10px; border:1px solid var(--line); border-radius:12px; overflow:hidden}
-  .plist-head{display:flex; gap:8px; padding:10px; border-bottom:1px solid var(--line); align-items:center}
-  .plist-head .title{font-size:13px; color:#bfe9ff; font-weight:700}
-  .plist-controls{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
-  .plist-body{max-height:220px; overflow:auto; background:#0d1433}
-  .track{display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid #0f1c45; cursor:pointer}
-  .track:hover{background:#0c1740}
-  .track.active{background:linear-gradient(90deg, #13224a, #0c173a)}
-  .track .idx{font-size:11px; color:#90a7c1; width:20px; text-align:right}
-  .track .name{flex:1; font-size:13px}
-  .track .dur{font-size:11px; color:#90a7c1}
-  .badge{font-size:10px; padding:2px 6px; border:1px solid #2a4b7a; color:#bfe9ff; border-radius:999px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card panel" id="leftPanel">
-    <h1>Beat Aligner PRO — Auto-Charts
-      <span class="pill" id="bpmPill">BPM: —</span>
-      <span class="pill" id="latPill">Latency: 0 ms</span>
-    </h1>
+    <h1>Beat Aligner PRO — Auto-Charts <span class="pill" id="bpmPill">BPM: —</span><span class="pill" id="latPill">Latency: 0 ms</span></h1>
 
-    <label>Audio files (add one or many)</label>
-    <input id="file" type="file" accept="audio/*" multiple />
+    <label>Audio file</label>
+    <input id="file" type="file" accept="audio/*" />
 
     <!-- Drag & Drop Zone -->
-    <div id="dropzone" class="dropzone" title="Click to choose or drag audio files here">
-      <div class="dz-text">Drop audio here (or click)</div>
-      <div class="dz-hint">MP3, WAV, M4A… (multi OK)</div>
+    <div id="dropzone" class="dropzone" title="Click to choose or drag an audio file here">
+      <div class="dz-text">Drop audio here (or click) </div>
+      <div class="dz-hint">MP3, WAV, M4A…</div>
     </div>
 
-    <!-- Playlist Controls -->
-    <div class="plist">
-      <div class="plist-head">
-        <div class="title">Playlist</div>
-      </div>
-      <div class="plist-controls" style="padding:10px; border-bottom:1px solid var(--line)">
-        <button id="prevBtn">⟨ Prev</button>
-        <button id="nextBtn">Next ⟩</button>
-        <button id="shuffleBtn" class="ghost" aria-pressed="false">Shuffle: Off</button>
-      </div>
-      <div class="plist-controls" style="padding:10px; border-bottom:1px solid var(--line)">
-        <div class="row">
-          <div>
-            <label>Switch Mode</label>
-            <select id="switchMode">
-              <option value="end" selected>End of song</option>
-              <option value="timer">Timer (seconds)</option>
-            </select>
-          </div>
-          <div>
-            <label>Timer (s)</label>
-            <input id="switchSeconds" type="number" min="5" step="5" value="30" />
-          </div>
-        </div>
-      </div>
-      <div id="playlist" class="plist-body" aria-label="playlist list"></div>
-      <div style="padding:8px 10px; display:flex; gap:8px; border-top:1px solid var(--line)">
-        <button id="clearPlBtn" class="ghost">Clear Playlist</button>
-        <span class="tiny" id="nowPlaying">Now Playing: —</span>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:10px">
+    <div class="row">
       <div>
         <label>Keys Mode</label>
         <select id="keysMode">
@@ -154,7 +106,7 @@
 
     <div class="row" style="margin-top:6px">
       <button id="reanalyze" class="primary" disabled>Re-Analyze</button>
-      <button id="clear">Clear Notes</button>
+      <button id="clear">Clear</button>
       <button id="autoplay" class="ghost" disabled>Auto-Play: Off</button>
     </div>
 
@@ -197,7 +149,7 @@
         <div id="kK" class="key">K</div>
         <div id="kL" class="key">L</div>
       </div>
-      <div class="status" id="status">Add songs to your playlist, then hit Play.</div>
+      <div class="status" id="status">Load a song to begin.</div>
       <div class="row" style="gap:8px; margin-top:6px; pointer-events:auto">
         <button id="play" class="primary" disabled>Play</button>
         <button id="pause" disabled>Pause</button>
@@ -211,52 +163,52 @@
 
 <script>
 (() => {
-  // ======== Audio core (unchanged behavior) ========
+  // ======== Audio ========
   let AC = window.AudioContext || window.webkitAudioContext;
   let ctx, srcNode, gain, audioBuf=null;
   let startedAt=0, pausedAt=0, isPlaying=false, isPaused=false;
   let lastTimeNow=0;
   let userLatencyMs = 0; // from calibration
 
+  async function loadFile(file){
+    if(!file) return;
+    if(!AC){ alert('WebAudio not supported'); return; }
+    if(!ctx) ctx = new AC();
+
+    // guard: only audio
+    if(!(file.type && file.type.startsWith('audio/'))){
+      statusEl.textContent = 'That doesn’t look like audio. Try MP3/WAV/M4A.';
+      return;
+    }
+
+    const arr = await file.arrayBuffer();
+    audioBuf = await ctx.decodeAudioData(arr);
+    statusEl.textContent = 'Loaded: ' + file.name + ' — Analyzing…';
+    setTransportDisabled(true);
+    setTimeout(()=> analyzeAndBuild(), 0);
+  }
+
   function setTransportDisabled(yes){
     playBtn.disabled=yes; stopBtn.disabled=yes; reBtn.disabled=yes; pauseBtn.disabled=yes; resumeBtn.disabled=yes; autoBtn.disabled=yes;
   }
 
-  function setAudioBuffer(buf){
-    audioBuf = buf;
-    setTransportDisabled(true);
-    statusEl.textContent = 'Analyzing…';
-    setTimeout(()=> analyzeAndBuild(), 0);
-  }
-
   function play(){
     if(!audioBuf || isPlaying) return;
-    if(!AC){ alert('WebAudio not supported'); return; }
     if(!ctx) ctx = new AC();
     if(ctx.state === 'suspended') ctx.resume();
-
-    clearSwitchTimer(); // playlist timer safety
     srcNode = ctx.createBufferSource(); gain = ctx.createGain();
     srcNode.buffer = audioBuf; srcNode.connect(gain); gain.connect(ctx.destination);
     const offset = Math.max(0, pausedAt);
     srcNode.start(0, offset);
     startedAt = ctx.currentTime - offset; isPlaying = true; isPaused=false;
-    srcNode.onended = ()=> handleSongEnded();
-    armSwitchTimerIfNeeded();
+    srcNode.onended = ()=> stop();
   }
-  function pause(){ if(!isPlaying || isPaused) return; pausedAt = currentSongTime(); stopInternal(false); isPaused = true; }
+  function pause(){ if(!isPlaying || isPaused) return; pausedAt = currentSongTime(); stop(); isPaused = true; }
   function resume(){ if(!audioBuf || !isPaused) return; play(); }
-  function stop(){ stopInternal(true); }
-  function stopInternal(resetPaused){
-    if(srcNode){ try{srcNode.stop();}catch(e){} try{srcNode.disconnect();}catch(e){} }
-    clearSwitchTimer();
-    isPlaying=false;
-    if(resetPaused) { pausedAt=0; isPaused=false; }
-    updateTransportButtons();
-  }
+  function stop(){ if(srcNode){ try{srcNode.stop();}catch(e){} srcNode.disconnect(); } isPlaying=false; }
   function currentSongTime(){ return (!isPlaying||!ctx)?(isPaused?pausedAt:0):(ctx.currentTime-startedAt); }
 
-  // ======== Analysis (same as your version) ========
+  // ======== Analysis ========
   async function renderBand(buffer, type){
     const sr = buffer.sampleRate, length = buffer.length;
     const off = new OfflineAudioContext(1, length, sr);
@@ -301,9 +253,15 @@
     return {times, flux};
   }
 
+  function localEnergy(times, flux, win=0.8){
+    const out=new Float32Array(flux.length); const step = times[1]-times[0]; const W=Math.max(1,Math.floor(win/step));
+    for(let i=0;i<flux.length;i++){ let s=0,c=0; for(let k=-W;k<=W;k++){ const j=i+k; if(j>=0&&j<flux.length){ s+=flux[j]; c++; } } out[i]=s/Math.max(1,c); }
+    return out;
+  }
+
   function estimateTempoAndPhase(times, flux){
-    let bestBPM=120, bestScore=-1, bestPhase=0, bestSwing=1.0;
     const step = times[1]-times[0];
+    let bestBPM=120, bestScore=-1, bestPhase=0, bestSwing=1.0;
     const cand = []; for(let b=60;b<=200;b+=1){ cand.push(b); }
     for(const bpm of cand){
       const beat = 60/bpm;
@@ -336,8 +294,8 @@
     const div = bpm<=120?8:16; const step = 60/bpm/div; const half = step*0.5;
     const out=[]; for(let g of gridTimes){
       const l=g-half, r=g+half;
-      let li=Math.max(0, Math.floor((l - times[0]) / (times[1]-times[0]))),
-          ri=Math.min(times.length-1, Math.ceil((r - times[0]) / (times[1]-times[0])));
+      let li=Math.max(0, Math.floor((l - times[0]) / (times[1]-times[0])));
+      let ri=Math.min(times.length-1, Math.ceil((r - times[0]) / (times[1]-times[0])));
       let bestI=-1, bestV=-1; for(let i=li;i<=ri;i++){ const v=flux[i]; if(v>bestV){ bestV=v; bestI=i; } }
       if(bestI>=0){ const local = bestV; if(local>=0.12){ out.push(+g.toFixed(3)); } }
     }
@@ -372,6 +330,7 @@
     const snapped = gridSnapFromTempo(times, bpm, phase);
 
     let noteTimes = pickMusicalNotes(snapped.times, times, flux, bpm);
+
     noteTimes = thinByRate(noteTimes, parseFloat(maxNpsInp.value)||7);
     if(userLatencyMs) noteTimes = noteTimes.map(t => t + userLatencyMs/1000);
 
@@ -383,10 +342,9 @@
     bpmPill.textContent = 'BPM: ' + bpm.toFixed(1);
     statusEl.textContent = `BPM ≈ ${bpm.toFixed(1)} • Notes ${notes.length} • Grid ${snapped.step.toFixed(3)}s • Offset ${snapped.offset.toFixed(3)}s`;
     playBtn.disabled=false; stopBtn.disabled=true; reBtn.disabled=false; pauseBtn.disabled=true; resumeBtn.disabled=true; autoBtn.disabled=false;
-    updateNowPlaying();
   }
 
-  // ======== Game state (unchanged) ========
+  // ======== Game state ========
   let notes=[]; let stats={score:0,combo:0,total:0,hits:0,misses:0};
   function resetStats(){ stats={score:0,combo:0,total:notes.length,hits:0,misses:0}; }
   function toJSON(){ return JSON.stringify({notes:notes.map(n=>({t:+n.t.toFixed(3),lane:n.lane}))},null,2); }
@@ -457,51 +415,29 @@
     g.fillStyle = `rgba(11,18,39,1)`; g.fillRect(0,0,W,H);
     for(let i=0;i<lanes;i++){ g.fillStyle='#0e1935'; g.fillRect(margin + i*laneW + 0, 10, laneW-12, H-20); g.strokeStyle='#78d8ff22'; g.strokeRect(margin + i*laneW + 0, 10, laneW-12, H-20); }
 
-    if(audioBuf){
-      const tNow=currentSongTime(); const speed=420; const lookAhead=6;
-      for(let bt=-8; bt< (audioBuf.duration/gridStep)+8; bt++){
-        const t=bt*gridStep + gridOffset; const dt=t - tNow;
-        if(dt<-1 || dt>lookAhead) continue;
-        const y=judgeY - dt*speed;
-        g.strokeStyle = (Math.abs(((bt)%4))<1e-6)?'#7dd3fc55':'#7dd3fc22';
-        g.beginPath(); g.moveTo(margin, y); g.lineTo(W-margin, y); g.stroke();
-      }
-    }
+    if(audioBuf){ const tNow=currentSongTime(); const speed=420; const lookAhead=6; for(let bt=-8; bt< (audioBuf.duration/gridStep)+8; bt++){ const t=bt*gridStep + gridOffset; const dt=t - tNow; if(dt<-1 || dt>lookAhead) continue; const y=judgeY - dt*speed; g.strokeStyle = (Math.abs(((bt)%4))<1e-6)?'#7dd3fc55':'#7dd3fc22'; g.beginPath(); g.moveTo(margin, y); g.lineTo(W-margin, y); g.stroke(); } }
 
     g.fillStyle='#78d8ff88'; g.fillRect(margin,judgeY,W-2*margin,4);
 
     const tNow=currentSongTime(); if(isPlaying) updateMisses(tNow);
 
     const speed=420, lookahead=5;
-    for(const n of notes){
-      if(n.judged && n.hit) continue; const dt=n.t-tNow;
-      if(dt<-1.0 || dt>lookahead) continue; const y=judgeY - dt*speed; const x=laneX(n.lane); const w=laneW-12, h=22;
-      g.fillStyle=n.judged?'#ef444480':'#7dd3fc'; g.fillRect(x, y-h/2, w, h); g.strokeStyle='#bfe9ff'; g.strokeRect(x, y-h/2, w, h);
-    }
+    for(const n of notes){ if(n.judged && n.hit) continue; const dt=n.t-tNow; if(dt<-1.0 || dt>lookahead) continue; const y=judgeY - dt*speed; const x=laneX(n.lane); const w=laneW-12, h=22; g.fillStyle=n.judged?'#ef444480':'#7dd3fc'; g.fillRect(x, y-h/2, w, h); g.strokeStyle='#bfe9ff'; g.strokeRect(x, y-h/2, w, h); }
 
     const dt = (ctx?ctx.currentTime:lastTimeNow) || (1/60); lastTimeNow = ctx?ctx.currentTime:lastTimeNow;
-    for(let i=particles.length-1;i>=0;i--){
-      const p=particles[i]; p.age+=dt; if(p.age>p.life){ particles.splice(i,1); continue; }
-      p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 400*dt; const alpha = 1 - (p.age/p.life);
-      g.fillStyle = `rgba(125,211,252,${alpha})`; g.fillRect(p.x, p.y, 3, 3);
-    }
+    for(let i=particles.length-1;i>=0;i--){ const p=particles[i]; p.age+=dt; if(p.age>p.life){ particles.splice(i,1); continue; } p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 400*dt; const alpha = 1 - (p.age/p.life); g.fillStyle = `rgba(125,211,252,${alpha})`; g.fillRect(p.x, p.y, 3, 3); }
 
     comboEl.textContent=stats.combo; const acc=stats.hits+stats.misses>0?(100*stats.hits/(stats.hits+stats.misses)):100; scoreEl.textContent=`Score: ${stats.score} • Accuracy: ${acc.toFixed(1)}%`;
 
-    if(audioBuf){
-      const t = Math.min(audioBuf.duration, Math.max(0, currentSongTime()));
-      progEl.style.width = ((t/audioBuf.duration)*100).toFixed(2)+'%';
-      timeLabel.textContent = `${formatTime(t)} / ${formatTime(audioBuf.duration)}`;
-    }
+    if(audioBuf){ const t = Math.min(audioBuf.duration, Math.max(0, currentSongTime())); progEl.style.width = ((t/audioBuf.duration)*100).toFixed(2)+'%'; timeLabel.textContent = `${formatTime(t)} / ${formatTime(audioBuf.duration)}`; }
 
-    if(autoplay && isPlaying){
-      const look=0.04;
-      for(const n of notes){ if(n.judged) continue; if(Math.abs(n.t - currentSongTime()) <= look){ judgeTap(n.lane); break; } if(n.t>currentSongTime()+look) break; }
+    if(autoplay && isPlaying){ const look=0.04;
+      for(const n of notes){ if(n.judged) continue; if(Math.abs(n.t - tNow) <= look){ judgeTap(n.lane); break; } if(n.t>tNow+look) break; }
     }
   }
   requestAnimationFrame(render);
 
-  // ======== Latency Calibration (unchanged) ========
+  // ======== Latency Calibration ========
   async function calibrateLatency(){
     if(!ctx) ctx = new AC();
     const bpm=120; const interval=60/bpm; const toneDur=0.03; const taps=[]; let running=true;
@@ -522,174 +458,6 @@
     }
   }
 
-  // ======== Playlist system ========
-  const MAX_DECODE_AT_ONCE = 1; // safety
-  const trackList = []; // {name, file, buffer, duration}
-  let currentIndex = -1;
-  let shuffle = false;
-  let switchMode = 'end'; // 'end' | 'timer'
-  let switchSeconds = 30;
-  let switchTimerId = null;
-
-  function formatDur(sec){
-    if(!isFinite(sec)) return '—:—';
-    const m=Math.floor(sec/60), s=Math.floor(sec%60);
-    return m+':'+String(s).padStart(2,'0');
-  }
-
-  function renderPlaylist(){
-    const el = playlistEl;
-    el.innerHTML = '';
-    trackList.forEach((t, i) => {
-      const row = document.createElement('div');
-      row.className = 'track' + (i===currentIndex ? ' active' : '');
-      row.dataset.index = i;
-      row.innerHTML = `<div class="idx">${i+1}</div>
-                       <div class="name">${t.name}</div>
-                       <div class="dur">${t.duration?formatDur(t.duration):''}</div>`;
-      row.addEventListener('click', ()=> selectTrack(i, true));
-      el.appendChild(row);
-    });
-  }
-
-  async function decodeFileToBuffer(file){
-    if(!AC){ alert('WebAudio not supported'); return null; }
-    if(!ctx) ctx = new AC();
-    const arr = await file.arrayBuffer();
-    const buf = await ctx.decodeAudioData(arr);
-    return buf;
-  }
-
-  async function addFiles(files){
-    const audioFiles = Array.from(files).filter(f => (f.type||'').startsWith('audio/'));
-    if(!audioFiles.length){ statusEl.textContent='No audio files detected.'; return; }
-    statusEl.textContent = `Importing ${audioFiles.length} file(s)…`;
-    // decode sequentially (safer)
-    for(const f of audioFiles){
-      try{
-        const buf = await decodeFileToBuffer(f);
-        trackList.push({name:f.name, file:f, buffer:buf, duration:buf.duration});
-      }catch(e){ console.warn('Decode failed for', f.name, e); }
-    }
-    if(currentIndex === -1 && trackList.length>0){
-      currentIndex = 0;
-      setAudioBuffer(trackList[0].buffer);
-    }
-    renderPlaylist();
-    updateNowPlaying();
-    statusEl.textContent = `Playlist: ${trackList.length} track(s).`;
-    updateTransportButtons();
-  }
-
-  function selectTrack(index, andPlay=false){
-    if(index<0 || index>=trackList.length) return;
-    currentIndex = index;
-    setAudioBuffer(trackList[index].buffer);
-    pausedAt = 0; isPaused=false;
-    renderPlaylist();
-    updateNowPlaying();
-    if(andPlay){
-      // analysis kicks automatically; wait a tick to ensure buffer set & analyzed
-      setTimeout(()=>{ playBtn.disabled=false; playBtn.click(); }, 10);
-    }
-  }
-
-  function nextIndex(){
-    if(trackList.length===0) return -1;
-    if(shuffle){
-      if(trackList.length===1) return currentIndex;
-      let n;
-      do{ n = Math.floor(Math.random()*trackList.length); } while(n===currentIndex);
-      return n;
-    } else {
-      return (currentIndex+1) % trackList.length;
-    }
-  }
-
-  function prevIndex(){
-    if(trackList.length===0) return -1;
-    if(shuffle){
-      if(trackList.length===1) return currentIndex;
-      let n;
-      do{ n = Math.floor(Math.random()*trackList.length); } while(n===currentIndex);
-      return n;
-    } else {
-      return (currentIndex-1+trackList.length) % trackList.length;
-    }
-  }
-
-  function handleSongEnded(){
-    if(switchMode==='timer'){
-      // if timer mode, we may have cut early; still advance when node actually ends
-      // but only if we were playing to end naturally (offset >= duration-0.1)
-    }
-    // move to next track automatically
-    goNext(true);
-  }
-
-  function goNext(andPlay=false){
-    const ni = nextIndex();
-    if(ni<0) return;
-    stop(); // ensure current stops & timers cleared
-    selectTrack(ni, andPlay);
-  }
-
-  function goPrev(andPlay=false){
-    const pi = prevIndex();
-    if(pi<0) return;
-    stop();
-    selectTrack(pi, andPlay);
-  }
-
-  function setShuffle(on){
-    shuffle = !!on;
-    shuffleBtn.setAttribute('aria-pressed', String(on));
-    shuffleBtn.textContent = 'Shuffle: ' + (on?'On':'Off');
-  }
-
-  function setSwitchMode(mode){
-    switchMode = mode;
-    if(mode==='end'){
-      // switching handled by onended
-      clearSwitchTimer();
-    } else {
-      // timer-based switching armed when play starts
-      if(isPlaying) { clearSwitchTimer(); armSwitchTimerIfNeeded(); }
-    }
-  }
-
-  function setSwitchSeconds(n){
-    switchSeconds = Math.max(5, n|0);
-    if(switchMode==='timer' && isPlaying){ clearSwitchTimer(); armSwitchTimerIfNeeded(); }
-  }
-
-  function clearSwitchTimer(){
-    if(switchTimerId){ clearTimeout(switchTimerId); switchTimerId=null; }
-  }
-
-  function armSwitchTimerIfNeeded(){
-    if(switchMode!=='timer') return;
-    clearSwitchTimer();
-    const ms = Math.max(5000, switchSeconds*1000);
-    switchTimerId = setTimeout(()=>{
-      // jump to next track at timer boundary
-      goNext(true);
-    }, ms);
-  }
-
-  function updateNowPlaying(){
-    if(currentIndex<0 || currentIndex>=trackList.length){ nowPlayingEl.textContent = 'Now Playing: —'; return; }
-    nowPlayingEl.textContent = 'Now Playing: ' + trackList[currentIndex].name;
-  }
-
-  function updateTransportButtons(){
-    playBtn.disabled = !audioBuf || isPlaying;
-    stopBtn.disabled = !isPlaying && !isPaused;
-    pauseBtn.disabled = !isPlaying || isPaused;
-    resumeBtn.disabled = !isPaused;
-    autoBtn.disabled = !audioBuf;
-  }
-
   // ======== UI refs & wiring ========
   const fileInp=document.getElementById('file'), playBtn=document.getElementById('play'), stopBtn=document.getElementById('stop'), reBtn=document.getElementById('reanalyze');
   const pauseBtn=document.getElementById('pause'), resumeBtn=document.getElementById('resume');
@@ -707,31 +475,16 @@
   const leftPanel=document.getElementById('leftPanel');
   const stageCard=document.getElementById('stageCard');
 
-  // Playlist controls
-  const playlistEl = document.getElementById('playlist');
-  const shuffleBtn = document.getElementById('shuffleBtn');
-  const switchModeSel = document.getElementById('switchMode');
-  const switchSecondsInp = document.getElementById('switchSeconds');
-  const nextBtn = document.getElementById('nextBtn');
-  const prevBtn = document.getElementById('prevBtn');
-  const clearPlBtn = document.getElementById('clearPlBtn');
-  const nowPlayingEl = document.getElementById('nowPlaying');
-
-  fileInp.addEventListener('change', e=>{ if(e.target.files?.length) addFiles(e.target.files); });
-
+  fileInp.addEventListener('change', e=>{ const f=e.target.files[0]; if(f) loadFile(f); });
   reBtn.addEventListener('click', ()=> analyzeAndBuild());
   playBtn.addEventListener('click', ()=>{
-    if(!audioBuf){ statusEl.textContent='No track selected.'; return; }
-    for(const n of notes){ n.hit=false; n.judged=false; }
-    const windowMs = Math.max(20,parseInt(hitInp.value,10)||120); HIT_WINDOW = windowMs/1000; resetStats();
-    if(ctx&&ctx.state==='suspended') ctx.resume();
-    play();
+    if(!audioBuf) return; for(const n of notes){ n.hit=false; n.judged=false; }
+    const windowMs = Math.max(20,parseInt(hitInp.value,10)||120); HIT_WINDOW = windowMs/1000; resetStats(); if(ctx&&ctx.state==='suspended') ctx.resume(); play();
     playBtn.disabled=true; stopBtn.disabled=false; pauseBtn.disabled=false; resumeBtn.disabled=true; statusEl.textContent='Playing — hit on the line!';
   });
   pauseBtn.addEventListener('click', ()=>{ pause(); pauseBtn.disabled=true; resumeBtn.disabled=false; statusEl.textContent='Paused.'; });
   resumeBtn.addEventListener('click', ()=>{ resume(); pauseBtn.disabled=false; resumeBtn.disabled=true; statusEl.textContent='Playing…'; });
   stopBtn.addEventListener('click', ()=>{ stop(); playBtn.disabled=false; stopBtn.disabled=true; pauseBtn.disabled=true; resumeBtn.disabled=true; statusEl.textContent='Stopped.'; });
-
   document.getElementById('clear').addEventListener('click', ()=>{ notes=[]; resetStats(); chartArea.value=toJSON(); statusEl.textContent='Cleared chart.'; });
   loadChartBtn.addEventListener('click', ()=> fromJSON(chartArea.value));
   copyChartBtn.addEventListener('click', async ()=>{ try{ await navigator.clipboard.writeText(chartArea.value); statusEl.textContent='Chart copied.';}catch(e){ alert('Copy failed'); } });
@@ -746,27 +499,30 @@
   });
   document.getElementById('calibrate').addEventListener('click', calibrateLatency);
 
-  shuffleBtn.addEventListener('click', ()=> setShuffle(!shuffle));
-  switchModeSel.addEventListener('change', (e)=> setSwitchMode(e.target.value));
-  switchSecondsInp.addEventListener('change', (e)=> setSwitchSeconds(parseInt(e.target.value,10)||30));
-  nextBtn.addEventListener('click', ()=> goNext(true));
-  prevBtn.addEventListener('click', ()=> goPrev(true));
-  clearPlBtn.addEventListener('click', ()=>{ stop(); trackList.splice(0, trackList.length); currentIndex=-1; renderPlaylist(); updateNowPlaying(); audioBuf=null; setTransportDisabled(true); statusEl.textContent='Playlist cleared.'; });
+  function buildChart(arr){ notes = arr.map(n=>({t:+n.t,lane:n.lane,hit:false,judged:false,y:0})); resetStats(); chartArea.value=toJSON(); }
 
-  function buildChart(arr){ notes = arr.map(n=>({t:+n.t,lane:n.lane,hit:false,judged:false,y:0})); resetStats(); chartArea.value=toJSON(); updateTransportButtons(); }
-
-  // ======== Drag & Drop (multi) ========
+  // ======== Drag & Drop (NEW) ========
+  // Helpers
   function preventDefaults(e){ e.preventDefault(); e.stopPropagation(); }
   function addDropHighlights(){ document.body.classList.add('dropping'); dropzone.classList.add('highlight'); }
   function removeDropHighlights(){ document.body.classList.remove('dropping'); dropzone.classList.remove('highlight'); }
 
-  function pickAudioFiles(dt){
-    const out=[];
-    if(dt.files && dt.files.length){ for(const f of dt.files){ if((f.type||'').startsWith('audio/')) out.push(f); } }
-    if(!out.length && dt.items && dt.items.length){
-      for(const it of dt.items){ if(it.kind==='file'){ const f=it.getAsFile(); if(f && (f.type||'').startsWith('audio/')) out.push(f); } }
+  function chooseFirstAudioFile(dataTransfer){
+    // Prefer actual File objects
+    if(dataTransfer.files && dataTransfer.files.length){
+      const file = Array.from(dataTransfer.files).find(f => (f.type||'').startsWith('audio/'));
+      return file || null;
     }
-    return out;
+    // Fallback: some platforms provide items
+    if(dataTransfer.items && dataTransfer.items.length){
+      for(const it of dataTransfer.items){
+        if(it.kind === 'file'){
+          const f = it.getAsFile();
+          if(f && (f.type||'').startsWith('audio/')) return f;
+        }
+      }
+    }
+    return null;
   }
 
   ['dragenter','dragover'].forEach(ev=>{
@@ -785,14 +541,15 @@
   window.addEventListener('drop', async (e)=>{
     preventDefaults(e);
     removeDropHighlights();
-    const files = pickAudioFiles(e.dataTransfer);
-    if(files.length){ await addFiles(files); }
-    else{ statusEl.textContent = 'Drop audio files (MP3/WAV/M4A).'; }
+    const file = chooseFirstAudioFile(e.dataTransfer);
+    if(file){ statusEl.textContent = 'Importing via drag & drop…'; await loadFile(file); }
+    else{ statusEl.textContent = 'Drop an audio file (MP3/WAV/M4A).'; }
   });
 
+  // Click dropzone => open file picker
   dropzone.addEventListener('click', ()=> fileInp.click());
 
-  // ======== Tiny Self-Tests ========
+  // ======== Tiny Self-Tests (run once on load) ========
   (function runSelfTests(){
     try{
       const t1=[0,0.1,0.2,0.4,0.6];
